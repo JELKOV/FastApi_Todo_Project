@@ -32,10 +32,10 @@ class TestFixtureBasics:
         assert len(sample_todo_list) == 3
         assert all("title" in todo for todo in sample_todo_list)
 
-    def test_fixture_with_client(self, client, sample_todo_data):
+    def test_fixture_with_client(self, authenticated_client, sample_todo_data):
         """클라이언트 fixture 사용 테스트"""
         # POST 요청으로 TODO 생성
-        response = client.post("/todos/", json=sample_todo_data)
+        response = authenticated_client.post("/todos/", json=sample_todo_data)
 
         assert response.status_code == 201
         data = response.json()
@@ -179,17 +179,17 @@ class TestCustomFixtures:
         assert result.title == "Mocked Todo"
         mock_todo_service.create_todo.assert_called_once_with(sample_todo_data)
 
-    def test_high_priority_todo(self, client, todo_with_high_priority):
+    def test_high_priority_todo(self, authenticated_client, todo_with_high_priority):
         """높은 우선순위 TODO 테스트"""
-        response = client.post("/todos/", json=todo_with_high_priority)
+        response = authenticated_client.post("/todos/", json=todo_with_high_priority)
 
         assert response.status_code == 201
         data = response.json()
         assert data["data"]["priority"] == 5
 
-    def test_completed_todo(self, client, completed_todo):
+    def test_completed_todo(self, authenticated_client, completed_todo):
         """완료된 TODO 테스트"""
-        response = client.post("/todos/", json=completed_todo)
+        response = authenticated_client.post("/todos/", json=completed_todo)
 
         assert response.status_code == 201
         data = response.json()

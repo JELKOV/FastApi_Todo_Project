@@ -35,12 +35,13 @@ class TodoService:
         """
         self.db = db
 
-    def create_todo(self, todo_data: TodoCreate) -> TodoResponse:
+    def create_todo(self, todo_data: TodoCreate, user_id: int = None) -> TodoResponse:
         """
         새로운 TODO 생성
 
         Args:
             todo_data (TodoCreate): 생성할 TODO 데이터
+            user_id (int, optional): 사용자 ID (인증된 사용자)
 
         Returns:
             TodoResponse: 생성된 TODO 정보 (ID와 타임스탬프 포함)
@@ -50,7 +51,8 @@ class TodoService:
             title=todo_data.title,
             description=todo_data.description,
             completed=todo_data.completed,
-            priority=todo_data.priority
+            priority=todo_data.priority,
+            user_id=user_id
         )
 
         # 데이터베이스에 추가 및 커밋

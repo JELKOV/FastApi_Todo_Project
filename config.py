@@ -37,6 +37,11 @@ class Settings:
     HOST: str = os.getenv("HOST", "0.0.0.0")  # 모든 인터페이스에서 접근 가능
     PORT: int = int(os.getenv("PORT", "8000"))  # 기본 포트 8000
 
+    # JWT 설정
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
 
 # 전역 설정 인스턴스
 # 애플리케이션 전반에서 이 인스턴스를 사용하여 설정값에 접근합니다.

@@ -16,6 +16,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, Path, Request, Response, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.core.auth import get_current_user
 from app.todos.application.services import TodoService
 from app.todos.domain.entities import (
     TodoCreate,
@@ -23,6 +24,7 @@ from app.todos.domain.entities import (
     TodoResponse,
     TodoListResponse
 )
+from app.users.domain.models import User
 from app.common.exceptions import TodoNotFoundError, TodoValidationError
 from app.common.response_helpers import (
     success_response,
@@ -64,7 +66,8 @@ def get_todo_service(db: Session = Depends(get_db)) -> TodoService:
 async def create_todo(
     request: Request,
     todo_data: TodoCreate,
-    todo_service: TodoService = Depends(get_todo_service)
+    todo_service: TodoService = Depends(get_todo_service),
+    current_user: User = Depends(get_current_user)
 ):
     """
     새로운 TODO 생성
@@ -86,7 +89,7 @@ async def create_todo(
         TodoInternalError: 서버 내부 오류 시 500 에러
     """
     try:
-        todo = todo_service.create_todo(todo_data)
+        todo = todo_service.create_todo(todo_data, current_user.id)
         return created_response(
             request=request,
             data=todo.model_dump(mode='json'),

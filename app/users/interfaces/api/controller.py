@@ -8,10 +8,14 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.core.auth import authenticate_user, create_access_token, get_current_user
 from app.users.application.services import UserService
-from app.users.domain.entities import UserCreate, UserUpdate, UserResponse
+from app.users.domain.entities import UserCreate, UserUpdate, UserResponse, UserLogin, Token
+from app.users.domain.models import User
 from app.common.response_helpers import success_response, created_response, list_response
 from app.common.error_codes import MessageKey
+from config import settings
+from datetime import timedelta
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -27,6 +31,48 @@ def get_user_service(db: Session = Depends(get_db)) -> UserService:
         UserService: 사용자 서비스 인스턴스
     """
     return UserService(db)
+
+
+@router.post("/login", response_model=Token, response_description="사용자 로그인")
+async def login(
+    request: Request,
+    login_data: UserLogin,
+    db: Session = Depends(get_db)
+):
+    """
+    사용자 로그인 및 JWT 토큰 발급
+
+    Args:
+        request: FastAPI 요청 객체
+        login_data: 로그인 데이터 (사용자명, 비밀번호)
+        db: 데이터베이스 세션
+
+    Returns:
+        Token: JWT 액세스 토큰
+
+    Raises:
+        HTTPException: 인증 실패 시 401 에러
+    """
+    # 사용자 인증
+    user = authenticate_user(db, login_data.username, login_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # JWT 토큰 생성
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
 
 
 @router.post("/", response_description="사용자 생성")
@@ -51,6 +97,30 @@ async def create_user(
         request=request,
         data=user.model_dump(mode='json'),
         message_key=MessageKey.USER_CREATED
+    )
+
+
+@router.get("/me", response_description="현재 사용자 정보")
+async def get_current_user_info(
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    현재 인증된 사용자 정보 조회
+
+    Args:
+        request: FastAPI 요청 객체
+        current_user: 현재 인증된 사용자 (JWT 토큰에서 추출)
+
+    Returns:
+        dict: 현재 사용자 정보
+    """
+    # User ORM 객체를 UserResponse Pydantic 모델로 변환
+    user_response = UserResponse.model_validate(current_user)
+    return success_response(
+        request=request,
+        data=user_response.model_dump(mode='json'),
+        message_key=MessageKey.USER_RETRIEVED
     )
 
 

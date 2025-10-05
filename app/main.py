@@ -13,7 +13,7 @@ Clean Architecture 패턴을 적용하여 도메인, 애플리케이션, 인프�
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 import os
@@ -43,7 +43,7 @@ app = FastAPI(
     version=os.getenv("APP_VERSION", "1.0.0"),
     docs_url="/docs",      # Swagger UI 문서 경로
     redoc_url="/redoc",    # ReDoc 문서 경로
-    default_response_class=ORJSONResponse,  # 빠른 JSON 응답
+    default_response_class=JSONResponse,  # JSON 응답
 )
 
 # CORS 미들웨어 추가

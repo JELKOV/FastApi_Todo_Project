@@ -15,6 +15,8 @@ from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.core.database import get_db, Base
+from app.users.application.services import UserService
+from app.users.domain.entities import UserCreate
 
 # 테스트용 인메모리 SQLite 데이터베이스
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -87,3 +89,58 @@ def sample_todo_list():
             "completed": False
         }
     ]
+
+@pytest.fixture
+def test_user_data():
+    """테스트용 사용자 데이터"""
+    return {
+        "username": "testuser",
+        "email": "test@example.com",
+        "password": "testpassword123"
+    }
+
+@pytest.fixture
+def authenticated_client(client, session, test_user_data):
+    """인증된 테스트 클라이언트"""
+    # 테스트 사용자 생성
+    user_service = UserService(session)
+    user_create = UserCreate(**test_user_data)
+    user = user_service.create_user(user_create)
+
+    # 로그인하여 JWT 토큰 획득
+    login_response = client.post("/users/login", json={
+        "username": test_user_data["username"],
+        "password": test_user_data["password"]
+    })
+
+    assert login_response.status_code == 200
+    token_data = login_response.json()
+    access_token = token_data["access_token"]
+
+    # Authorization 헤더가 포함된 클라이언트 반환
+    class AuthenticatedClient:
+        def __init__(self, client, token):
+            self.client = client
+            self.headers = {"Authorization": f"Bearer {token}"}
+
+        def get(self, url, **kwargs):
+            kwargs.setdefault("headers", {}).update(self.headers)
+            return self.client.get(url, **kwargs)
+
+        def post(self, url, **kwargs):
+            kwargs.setdefault("headers", {}).update(self.headers)
+            return self.client.post(url, **kwargs)
+
+        def put(self, url, **kwargs):
+            kwargs.setdefault("headers", {}).update(self.headers)
+            return self.client.put(url, **kwargs)
+
+        def patch(self, url, **kwargs):
+            kwargs.setdefault("headers", {}).update(self.headers)
+            return self.client.patch(url, **kwargs)
+
+        def delete(self, url, **kwargs):
+            kwargs.setdefault("headers", {}).update(self.headers)
+            return self.client.delete(url, **kwargs)
+
+    return AuthenticatedClient(client, access_token)

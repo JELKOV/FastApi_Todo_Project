@@ -41,9 +41,9 @@ class User(Base):
         unique=True           # 중복 이메일 방지
     )
 
-    # 비밀번호: 최대 255자, 필수 입력 (해시된 값)
+    # 비밀번호: 최대 512자, 필수 입력 (bcrypt 해시된 값)
     password = Column(
-        String(255),
+        String(512),
         nullable=False        # NULL 값 허용하지 않음
     )
 

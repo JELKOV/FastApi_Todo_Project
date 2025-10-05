@@ -111,6 +111,10 @@ class TodoResponse(TodoBase):
         ...,
         description="마지막 수정 시간"
     )
+    user_id: Optional[int] = Field(
+        None,
+        description="생성자 사용자 ID"
+    )
 
     model_config = ConfigDict(
         from_attributes=True,

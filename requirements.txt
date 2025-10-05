@@ -20,6 +20,10 @@ psycopg2-binary
 # JSON 응답 최적화 (선택사항)
 orjson
 
+# 비밀번호 해시화 및 인증
+passlib[bcrypt]
+python-jose[cryptography]
+
 # 테스트 프레임워크
 pytest
 pytest-asyncio

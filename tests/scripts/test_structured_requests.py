@@ -1,7 +1,7 @@
 """
 구조화된 요청 모델 테스트
 
-이 테스트는 새로 만든 구조화된 요청 모델들이 
+이 테스트는 새로 만든 구조화된 요청 모델들이
 제대로 작동하는지 확인합니다.
 """
 
@@ -14,11 +14,11 @@ class StructuredRequestTester:
     def __init__(self, base_url: str = "http://localhost:8000"):
         self.base_url = base_url
         self.session = requests.Session()
-        
+
     def test_structured_create_request(self):
         """구조화된 생성 요청 테스트"""
         print("🔍 Testing structured create request...")
-        
+
         # 기본 생성 요청
         create_data = {
             "title": "구조화된 요청 테스트",
@@ -26,7 +26,7 @@ class StructuredRequestTester:
             "priority": 4,
             "completed": False
         }
-        
+
         try:
             response = self.session.post(
                 f"{self.base_url}/todos/",
@@ -39,11 +39,11 @@ class StructuredRequestTester:
         except Exception as e:
             print(f"❌ Error: {e}")
             return {}
-    
+
     def test_structured_list_request(self):
         """구조화된 목록 요청 테스트"""
         print("\n🔍 Testing structured list request...")
-        
+
         # 다양한 필터와 정렬 옵션 테스트
         test_cases = [
             {
@@ -74,7 +74,7 @@ class StructuredRequestTester:
                 }
             }
         ]
-        
+
         for test_case in test_cases:
             print(f"\n📝 Testing: {test_case['name']}")
             try:
@@ -90,11 +90,11 @@ class StructuredRequestTester:
                 print(f"Todos count: {len(result.get('data', {}).get('todos', []))}")
             except Exception as e:
                 print(f"❌ Error: {e}")
-    
+
     def test_structured_update_request(self):
         """구조화된 수정 요청 테스트"""
         print("\n🔍 Testing structured update request...")
-        
+
         # 먼저 TODO 생성
         create_data = {
             "title": "수정 테스트용 TODO",
@@ -102,7 +102,7 @@ class StructuredRequestTester:
             "priority": 1,
             "completed": False
         }
-        
+
         try:
             # TODO 생성
             create_response = self.session.post(
@@ -112,31 +112,31 @@ class StructuredRequestTester:
             if create_response.status_code == 201:
                 todo_id = create_response.json()['data']['id']
                 print(f"Created TODO with ID: {todo_id}")
-                
+
                 # 부분 업데이트 테스트
                 update_data = {
                     "title": "수정된 제목",
                     "priority": 5
                 }
-                
+
                 update_response = self.session.put(
                     f"{self.base_url}/todos/{todo_id}",
                     json=update_data
                 )
                 print(f"Update Status Code: {update_response.status_code}")
                 print(f"Update Response: {json.dumps(update_response.json(), indent=2, ensure_ascii=False)}")
-                
+
                 # TODO 삭제 (정리)
                 delete_response = self.session.delete(f"{self.base_url}/todos/{todo_id}")
                 print(f"Cleanup - Delete Status: {delete_response.status_code}")
-                
+
         except Exception as e:
             print(f"❌ Error: {e}")
-    
+
     def test_validation_errors(self):
         """검증 오류 테스트"""
         print("\n🔍 Testing validation errors...")
-        
+
         test_cases = [
             {
                 "name": "빈 제목",
@@ -159,7 +159,7 @@ class StructuredRequestTester:
                 "params": {"sort_order": "invalid"}
             }
         ]
-        
+
         for test_case in test_cases:
             print(f"\n📝 Testing validation: {test_case['name']}")
             try:
@@ -173,7 +173,7 @@ class StructuredRequestTester:
                         f"{self.base_url}/todos/",
                         params=test_case['params']
                     )
-                
+
                 print(f"Status Code: {response.status_code}")
                 if response.status_code != 200:
                     result = response.json()
@@ -183,11 +183,11 @@ class StructuredRequestTester:
                             print(f"  - {error.get('msg', 'Unknown validation error')}")
             except Exception as e:
                 print(f"❌ Error: {e}")
-    
+
     def test_advanced_features(self):
         """고급 기능 테스트"""
         print("\n🔍 Testing advanced request features...")
-        
+
         # 검색 기능 (실제로는 백엔드에서 구현되어야 함)
         print("\n📝 Testing search functionality...")
         try:
@@ -200,7 +200,7 @@ class StructuredRequestTester:
             print(f"Search Results: {result.get('data', {}).get('total', 0)} items found")
         except Exception as e:
             print(f"❌ Error: {e}")
-        
+
         # 복잡한 필터링
         print("\n📝 Testing complex filtering...")
         try:
@@ -220,27 +220,27 @@ class StructuredRequestTester:
             print(f"Filtered Results: {result.get('data', {}).get('total', 0)} items")
         except Exception as e:
             print(f"❌ Error: {e}")
-    
+
     def run_comprehensive_test(self):
         """종합 테스트 실행"""
         print("🚀 Starting structured request model test...")
         print("=" * 60)
-        
+
         # 1. 구조화된 생성 요청
         self.test_structured_create_request()
-        
+
         # 2. 구조화된 목록 요청
         self.test_structured_list_request()
-        
+
         # 3. 구조화된 수정 요청
         self.test_structured_update_request()
-        
+
         # 4. 검증 오류 테스트
         self.test_validation_errors()
-        
+
         # 5. 고급 기능 테스트
         self.test_advanced_features()
-        
+
         print("\n" + "=" * 60)
         print("✅ Structured request model test completed!")
 
@@ -256,11 +256,11 @@ def wait_for_server(max_retries: int = 30, delay: int = 2):
                 return True
         except:
             pass
-        
+
         print(f"⏳ Attempt {i+1}/{max_retries} - Waiting {delay}s...")
         import time
         time.sleep(delay)
-    
+
     print("❌ Server failed to start within timeout period")
     return False
 
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     if not wait_for_server():
         print("Please start the server first with: python run.py")
         exit(1)
-    
+
     # 테스트 실행
     tester = StructuredRequestTester()
     tester.run_comprehensive_test()

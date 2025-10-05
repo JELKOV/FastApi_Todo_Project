@@ -9,6 +9,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, DataError, OperationalError
 from fastapi import HTTPException, status
+from passlib.context import CryptContext
 from app.users.domain.models import User
 from app.users.domain.entities import UserCreate, UserUpdate, UserResponse
 
@@ -28,6 +29,8 @@ class UserService:
             db: SQLAlchemy 데이터베이스 세션
         """
         self.db = db
+        # bcrypt를 사용한 비밀번호 해시화 컨텍스트
+        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def create_user(self, user_data: UserCreate) -> UserResponse:
         """
@@ -144,6 +147,18 @@ class UserService:
         if user:
             return UserResponse.model_validate(user)
         return None
+
+    def get_user_by_username_orm(self, username: str) -> Optional[User]:
+        """
+        사용자명으로 사용자 ORM 객체 조회 (인증용)
+
+        Args:
+            username: 사용자명
+
+        Returns:
+            Optional[User]: 사용자 ORM 객체 또는 None
+        """
+        return self.db.query(User).filter(User.username == username).first()
 
     def get_user_by_email(self, email: str) -> Optional[UserResponse]:
         """
@@ -286,22 +301,19 @@ class UserService:
 
     def _hash_password(self, password: str) -> str:
         """
-        비밀번호 해시화
+        비밀번호 해시화 (bcrypt 사용)
 
         Args:
             password: 원본 비밀번호
 
         Returns:
-            str: 해시된 비밀번호
+            str: bcrypt로 해시된 비밀번호
         """
-        # 실제 프로덕션에서는 passlib의 bcrypt 사용 권장
-        # 여기서는 간단한 예시로 구현
-        import hashlib
-        return hashlib.sha256(password.encode()).hexdigest()
+        return self.pwd_context.hash(password)
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """
-        비밀번호 검증
+        비밀번호 검증 (bcrypt 사용)
 
         Args:
             plain_password: 입력된 비밀번호
@@ -310,4 +322,4 @@ class UserService:
         Returns:
             bool: 비밀번호 일치 여부
         """
-        return self._hash_password(plain_password) == hashed_password
+        return self.pwd_context.verify(plain_password, hashed_password)

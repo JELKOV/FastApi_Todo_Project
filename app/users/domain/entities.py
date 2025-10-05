@@ -135,12 +135,41 @@ class UserLogin(BaseModel):
     """
     username: str = Field(
         ...,
+        min_length=2,
+        max_length=50,
         description="사용자명"
     )
     password: str = Field(
         ...,
+        min_length=4,
+        max_length=255,
         description="비밀번호"
     )
+
+
+class Token(BaseModel):
+    """
+    JWT 토큰 응답 모델
+    """
+    access_token: str = Field(
+        ...,
+        description="액세스 토큰"
+    )
+    token_type: str = Field(
+        default="bearer",
+        description="토큰 타입"
+    )
+    expires_in: int = Field(
+        ...,
+        description="토큰 만료 시간 (초)"
+    )
+
+
+class TokenData(BaseModel):
+    """
+    JWT 토큰 데이터 모델
+    """
+    username: Optional[str] = None
 
 
 class UserWithTodos(UserResponse):
