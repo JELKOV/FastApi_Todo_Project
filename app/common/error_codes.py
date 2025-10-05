@@ -11,29 +11,29 @@ from typing import Dict
 
 class TodoErrorCode(Enum):
     """TODO 관련 에러 코드"""
-    
+
     # 400 Bad Request
     TODO_INVALID_DATA = "E400T001"
     TODO_INVALID_TITLE = "E400T002"
     TODO_INVALID_PRIORITY = "E400T003"
     TODO_INVALID_STATUS = "E400T004"
-    
+
     # 401 Unauthorized
     TODO_UNAUTHORIZED = "E401T001"
-    
+
     # 403 Forbidden
     TODO_FORBIDDEN = "E403T001"
-    
+
     # 404 Not Found
     TODO_NOT_FOUND = "E404T001"
-    
+
     # 409 Conflict
     TODO_ALREADY_EXISTS = "E409T001"
-    
+
     # 422 Validation Error
     TODO_VALIDATION_ERROR = "E422T001"
     TODO_INVALID_FORMAT = "E422T002"
-    
+
     # 500 Internal Server Error
     TODO_INTERNAL_ERROR = "E500T001"
     TODO_DATABASE_ERROR = "E500T002"
@@ -41,7 +41,7 @@ class TodoErrorCode(Enum):
 
 class MessageKey(Enum):
     """메시지 키"""
-    
+
     # 성공 메시지
     SUCCESS = "SUCCESS"
     TODO_CREATED = "TODO_CREATED"
@@ -50,7 +50,14 @@ class MessageKey(Enum):
     TODO_RETRIEVED = "TODO_RETRIEVED"
     TODO_LIST_RETRIEVED = "TODO_LIST_RETRIEVED"
     TODO_TOGGLED = "TODO_TOGGLED"
-    
+
+    # User 관련 성공 메시지
+    USER_CREATED = "USER_CREATED"
+    USER_UPDATED = "USER_UPDATED"
+    USER_DELETED = "USER_DELETED"
+    USER_RETRIEVED = "USER_RETRIEVED"
+    USER_LIST_RETRIEVED = "USER_LIST_RETRIEVED"
+
     # 에러 메시지
     TODO_NOT_FOUND = "TODO_NOT_FOUND"
     TODO_VALIDATION_ERROR = "TODO_VALIDATION_ERROR"
@@ -61,7 +68,7 @@ class MessageKey(Enum):
 
 class MessageType(str, Enum):
     """메시지 타입"""
-    
+
     SUCCESS = "success"
     ERROR = "error"
     INFO = "info"
@@ -79,6 +86,11 @@ MESSAGES: Dict[str, Dict[MessageType, Dict[str, str]]] = {
             MessageKey.TODO_RETRIEVED.value: "할 일을 조회했습니다",
             MessageKey.TODO_LIST_RETRIEVED.value: "할 일 목록을 조회했습니다",
             MessageKey.TODO_TOGGLED.value: "할 일 상태가 변경되었습니다",
+            MessageKey.USER_CREATED.value: "사용자가 생성되었습니다",
+            MessageKey.USER_UPDATED.value: "사용자 정보가 수정되었습니다",
+            MessageKey.USER_DELETED.value: "사용자가 삭제되었습니다",
+            MessageKey.USER_RETRIEVED.value: "사용자 정보를 조회했습니다",
+            MessageKey.USER_LIST_RETRIEVED.value: "사용자 목록을 조회했습니다",
         },
         MessageType.ERROR: {
             TodoErrorCode.TODO_NOT_FOUND.value: "할 일을 찾을 수 없습니다",
@@ -99,6 +111,11 @@ MESSAGES: Dict[str, Dict[MessageType, Dict[str, str]]] = {
             MessageKey.TODO_RETRIEVED.value: "Todo retrieved successfully",
             MessageKey.TODO_LIST_RETRIEVED.value: "Todo list retrieved successfully",
             MessageKey.TODO_TOGGLED.value: "Todo status toggled successfully",
+            MessageKey.USER_CREATED.value: "User created successfully",
+            MessageKey.USER_UPDATED.value: "User updated successfully",
+            MessageKey.USER_DELETED.value: "User deleted successfully",
+            MessageKey.USER_RETRIEVED.value: "User retrieved successfully",
+            MessageKey.USER_LIST_RETRIEVED.value: "User list retrieved successfully",
         },
         MessageType.ERROR: {
             TodoErrorCode.TODO_NOT_FOUND.value: "Todo not found",

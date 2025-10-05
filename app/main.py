@@ -20,6 +20,7 @@ import os
 
 from app.core.database import engine, Base
 from app.todos.interfaces.api.controller import router as todos_router
+from app.users.interfaces.api.controller import router as users_router
 from app.common.exceptions import BaseTodoException
 from app.common.exception_handlers import (
     todo_exception_handler,
@@ -131,6 +132,10 @@ async def health_check(request: Request):
 # TODO 라우터 등록
 # /todos 경로에 TODO 관련 엔드포인트들을 등록합니다.
 app.include_router(todos_router, prefix="/todos", tags=["todos"])
+
+# User 라우터 등록
+# /users 경로에 User 관련 엔드포인트들을 등록합니다.
+app.include_router(users_router, tags=["users"])
 
 
 if __name__ == "__main__":

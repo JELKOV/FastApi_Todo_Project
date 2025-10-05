@@ -6,6 +6,7 @@ python-multipart
 # 데이터 검증 및 설정
 pydantic
 pydantic-settings
+email-validator
 
 # 데이터베이스 ORM
 sqlalchemy

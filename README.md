@@ -1,6 +1,6 @@
 # Todo RESTful API
 
-FastAPI와 PostgreSQL을 사용한 완전한 TODO 관리 RESTful API입니다.
+FastAPI와 PostgreSQL을 사용한 완전한 TODO 관리 RESTful API입니다. Clean Architecture 패턴을 적용하여 확장 가능하고 유지보수가 용이한 구조로 설계되었습니다.
 
 ## 🏗️ 프로젝트 구조 (Clean Architecture)
 
@@ -10,21 +10,54 @@ todo_fastapi_be/
 │   ├── main.py                   # FastAPI 애플리케이션 진입점
 │   ├── core/                     # 핵심 설정
 │   │   └── database.py           # 데이터베이스 연결 설정
-│   └── todos/                    # TODO 도메인
+│   ├── common/                   # 공통 모듈
+│   │   ├── schemas.py            # 공통 Pydantic 스키마
+│   │   ├── error_codes.py        # 에러 코드 및 메시지 관리
+│   │   ├── exceptions.py         # 커스텀 예외 클래스
+│   │   ├── exception_handlers.py # 전역 예외 핸들러
+│   │   └── response_helpers.py   # 표준화된 응답 헬퍼
+│   ├── todos/                    # TODO 도메인
+│   │   ├── domain/               # 도메인 레이어
+│   │   │   ├── entities.py       # Pydantic 모델 (요청/응답 스키마)
+│   │   │   └── models.py         # SQLAlchemy ORM 모델
+│   │   ├── application/          # 애플리케이션 레이어
+│   │   │   └── services.py       # 비즈니스 로직
+│   │   ├── infrastructure/       # 인프라 레이어
+│   │   └── interfaces/           # 인터페이스 레이어
+│   │       └── api/
+│   │           └── controller.py # FastAPI 라우터 (API 엔드포인트)
+│   └── users/                    # 사용자 도메인
 │       ├── domain/               # 도메인 레이어
 │       │   ├── entities.py       # Pydantic 모델 (요청/응답 스키마)
 │       │   └── models.py         # SQLAlchemy ORM 모델
 │       ├── application/          # 애플리케이션 레이어
 │       │   └── services.py       # 비즈니스 로직
-│       ├── infrastructure/       # 인프라 레이어
 │       └── interfaces/           # 인터페이스 레이어
 │           └── api/
 │               └── controller.py # FastAPI 라우터 (API 엔드포인트)
+├── tests/                        # 테스트 디렉토리
+│   ├── conftest.py               # Pytest 설정 및 공통 픽스처
+│   ├── unit/                     # 단위 테스트
+│   │   ├── test_basic.py         # 기본 기능 테스트
+│   │   ├── test_fixtures.py      # 픽스처 테스트
+│   │   └── test_mocking.py       # 모킹 테스트
+│   ├── integration/              # 통합 테스트
+│   │   ├── test_get_todos.py     # TODO 목록 조회 테스트
+│   │   ├── test_get_todo.py      # TODO 단일 조회 테스트
+│   │   ├── test_post_todo.py     # TODO 생성 테스트
+│   │   ├── test_patch_todo.py    # TODO 수정 테스트
+│   │   ├── test_delete_todo.py   # TODO 삭제 테스트
+│   │   └── test_user_api_complete.py # 사용자 API 통합 테스트
+│   └── fixtures/                 # 테스트 픽스처
 ├── config.py                     # 애플리케이션 설정 관리
 ├── run.py                        # 개발 서버 실행 스크립트
 ├── requirements.txt              # Python 의존성
+├── pytest.ini                   # Pytest 설정
+├── Makefile                      # 개발 명령어 모음
 ├── docker-compose.yml           # PostgreSQL & pgAdmin 컨테이너 설정
 ├── .env                         # 환경 변수 (PostgreSQL 연결 정보)
+├── activate.bat                 # Windows 가상환경 활성화 스크립트
+├── activate.sh                  # Linux/Mac 가상환경 활성화 스크립트
 └── README.md                    # 프로젝트 문서
 ```
 
@@ -40,6 +73,9 @@ python -m venv .venv
 
 # 의존성 설치
 pip install -r requirements.txt
+
+# 또는 Makefile 사용
+make install
 ```
 
 ### 2. 데이터베이스 실행
@@ -50,6 +86,9 @@ docker-compose up -d postgres
 
 # 컨테이너 상태 확인
 docker ps
+
+# 또는 Makefile 사용
+make db-start
 ```
 
 ### 3. 애플리케이션 실행
@@ -57,9 +96,26 @@ docker ps
 ```bash
 # 개발 서버 시작
 python run.py
+
+# 또는 Makefile 사용
+make run
 ```
 
 서버가 http://localhost:8000 에서 실행됩니다.
+
+### 4. 테스트 실행
+
+```bash
+# 전체 테스트 실행
+python -m pytest tests/ -v
+
+# 커버리지 포함 테스트
+python -m pytest tests/ --cov=app --cov-report=html
+
+# 또는 Makefile 사용
+make test
+make coverage
+```
 
 ## 📚 API 문서
 
@@ -80,12 +136,28 @@ python run.py
 - `DELETE /todos/{id}` - TODO 삭제
 - `PATCH /todos/{id}/toggle` - TODO 완료 상태 토글
 
+### 사용자 관리
+- `POST /users/` - 새 사용자 생성
+- `GET /users/` - 사용자 목록 조회 (페이지네이션 지원)
+- `GET /users/{user_id}` - 특정 사용자 조회
+- `PUT /users/{user_id}` - 사용자 정보 수정
+- `PATCH /users/{user_id}` - 사용자 정보 부분 수정
+- `DELETE /users/{user_id}` - 사용자 삭제
+- `GET /users/username/{username}` - 사용자명으로 사용자 조회
+- `GET /users/email/{email}` - 이메일로 사용자 조회
+
 ### 쿼리 파라미터 (GET /todos/)
 - `page`: 페이지 번호 (기본값: 1)
 - `size`: 페이지 크기 (기본값: 10)
 - `completed`: 완료 상태 필터 (true/false)
 - `priority`: 우선순위 필터 (1-5)
 - `sort`: 정렬 기준 (created_at, updated_at, priority, title)
+- `order`: 정렬 순서 (asc, desc)
+
+### 쿼리 파라미터 (GET /users/)
+- `page`: 페이지 번호 (기본값: 1)
+- `size`: 페이지 크기 (기본값: 10)
+- `sort`: 정렬 기준 (created_at, updated_at, username)
 - `order`: 정렬 순서 (asc, desc)
 
 ## 🗄️ 데이터베이스 설정
@@ -101,6 +173,96 @@ python run.py
 - **URL**: http://localhost:5050
 - **이메일**: admin@todo.com
 - **비밀번호**: admin123
+
+### 데이터베이스 스키마
+
+#### Users 테이블
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### Todos 테이블
+```sql
+CREATE TABLE todos (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    completed BOOLEAN DEFAULT FALSE,
+    priority INTEGER DEFAULT 1 CHECK (priority >= 1 AND priority <= 5),
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 🏛️ Clean Architecture 구조
+
+### 레이어별 책임
+
+1. **Domain Layer** (`domain/`)
+   - 비즈니스 로직의 핵심
+   - 엔티티와 도메인 규칙 정의
+   - 외부 의존성 없음
+
+2. **Application Layer** (`application/`)
+   - 유스케이스 구현
+   - 도메인 로직 조합
+   - 트랜잭션 관리
+
+3. **Infrastructure Layer** (`infrastructure/`)
+   - 외부 시스템과의 연동
+   - 데이터베이스 구현
+   - 외부 API 연동
+
+4. **Interface Layer** (`interfaces/`)
+   - 외부와의 통신
+   - API 엔드포인트
+   - 요청/응답 변환
+
+### 공통 모듈 (`common/`)
+
+- **schemas.py**: 공통 Pydantic 스키마 정의
+- **error_codes.py**: 에러 코드 및 다국어 메시지 관리
+- **exceptions.py**: 커스텀 예외 클래스
+- **exception_handlers.py**: 전역 예외 핸들러
+- **response_helpers.py**: 표준화된 HTTP 응답 헬퍼
+
+## 🧪 테스트 구조
+
+### 테스트 유형
+
+1. **Unit Tests** (`tests/unit/`)
+   - 개별 함수/메서드 테스트
+   - 모킹을 통한 격리된 테스트
+   - 픽스처 사용법 테스트
+
+2. **Integration Tests** (`tests/integration/`)
+   - API 엔드포인트 통합 테스트
+   - 데이터베이스 연동 테스트
+   - 전체 워크플로우 테스트
+
+### 테스트 실행
+
+```bash
+# 전체 테스트
+make test
+
+# 커버리지 리포트
+make coverage
+
+# 특정 테스트 파일
+python -m pytest tests/integration/test_user_api_complete.py -v
+
+# 특정 테스트 클래스
+python -m pytest tests/integration/test_user_api_complete.py::TestUserAPIComplete -v
+```
 
 ## 🐛 주요 에러 해결 가이드
 
@@ -191,6 +353,20 @@ taskkill /F /IM python.exe
 pip install psycopg2-binary==2.9.9
 ```
 
+### 5. 테스트 관련 오류
+
+#### 문제: `PydanticDeprecatedSince20: Pydantic V1 style @validator validators are deprecated`
+
+**원인**: Pydantic V1 스타일 validator 사용
+
+**해결방법**: `@validator`를 `@field_validator`로 변경하고 `@classmethod` 추가
+
+#### 문제: `DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated`
+
+**원인**: FastAPI 상태 코드 변경
+
+**해결방법**: `HTTP_422_UNPROCESSABLE_ENTITY`를 `HTTP_422_UNPROCESSABLE_CONTENT`로 변경
+
 ## 🔍 디버깅 도구
 
 ### 연결 테스트 스크립트
@@ -238,6 +414,23 @@ PORT=8000
 - **psycopg2-binary**: PostgreSQL 드라이버
 - **Pydantic**: 데이터 검증
 - **uvicorn**: ASGI 서버
+- **pytest**: 테스트 프레임워크
+- **pytest-asyncio**: 비동기 테스트 지원
+- **httpx**: HTTP 클라이언트 (테스트용)
+- **pytest-cov**: 커버리지 측정
+
+### Makefile 명령어
+```bash
+make install      # 의존성 설치
+make run          # 개발 서버 시작
+make test         # 테스트 실행
+make coverage     # 커버리지 리포트 생성
+make lint         # 코드 린팅
+make format       # 코드 포맷팅
+make clean        # 임시 파일 정리
+make db-start     # 데이터베이스 시작
+make db-stop      # 데이터베이스 중지
+```
 
 ## 📝 사용 예시
 
@@ -262,16 +455,62 @@ curl "http://localhost:8000/todos/?page=1&size=10&completed=false"
 curl -X PATCH "http://localhost:8000/todos/1/toggle"
 ```
 
+### 사용자 생성
+```bash
+curl -X POST "http://localhost:8000/users/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "testpassword123"
+  }'
+```
+
+### 사용자 목록 조회
+```bash
+curl "http://localhost:8000/users/?page=1&size=10"
+```
+
 ## 🎯 주요 특징
 
+### 아키텍처 특징
 - **Clean Architecture**: 도메인 중심의 계층화된 구조
+- **Dependency Injection**: FastAPI Depends를 통한 의존성 주입
+- **Repository Pattern**: 데이터 접근 계층 분리
+- **Service Layer**: 비즈니스 로직 캡슐화
+
+### API 특징
 - **RESTful API**: 표준 HTTP 메서드 사용
-- **PostgreSQL**: 강력한 관계형 데이터베이스
+- **표준화된 응답**: 일관된 응답 구조
+- **에러 핸들링**: 상세한 에러 응답 및 코드
+- **다국어 지원**: 한국어/영어 메시지
 - **자동 문서화**: Swagger UI & ReDoc
-- **타입 안전성**: Pydantic 모델 사용
-- **에러 핸들링**: 상세한 에러 응답
+
+### 데이터베이스 특징
+- **PostgreSQL**: 강력한 관계형 데이터베이스
+- **SQLAlchemy ORM**: 타입 안전한 데이터베이스 접근
+- **관계 설정**: Users와 Todos 간 외래키 관계
+- **자동 타임스탬프**: 생성/수정 시간 자동 관리
+
+### 테스트 특징
+- **포괄적 테스트**: 단위/통합 테스트 모두 포함
+- **모킹**: 외부 의존성 격리
+- **픽스처**: 재사용 가능한 테스트 데이터
+- **커버리지**: 코드 커버리지 측정
+
+### 개발 도구
 - **페이지네이션**: 대용량 데이터 처리
 - **필터링 & 정렬**: 유연한 데이터 조회
+- **타입 안전성**: Pydantic 모델 사용
+- **개발 편의성**: Makefile, 스크립트 제공
+
+## 📊 프로젝트 통계
+
+- **총 테스트**: 126개 (모두 통과)
+- **테스트 커버리지**: 높은 수준
+- **API 엔드포인트**: TODO 6개 + 사용자 7개
+- **데이터베이스 테이블**: 2개 (users, todos)
+- **아키텍처 레이어**: 4개 (Domain, Application, Infrastructure, Interface)
 
 ## 📞 지원
 
@@ -282,6 +521,15 @@ curl -X PATCH "http://localhost:8000/todos/1/toggle"
 3. **로그 확인**: `docker logs todo_postgres`
 4. **연결 테스트**: `python test_1234_password.py`
 5. **환경 변수 확인**: `.env` 파일 내용
+6. **테스트 실행**: `make test`
+
+## 📚 추가 문서
+
+- [PYTEST_TUTORIAL_PROGRESS.md](PYTEST_TUTORIAL_PROGRESS.md) - Pytest 튜토리얼 진행 상황
+- [USER_API_REFACTORING_DOCUMENTATION.md](USER_API_REFACTORING_DOCUMENTATION.md) - 사용자 API 리팩토링 문서
+- [VIRTUAL_ENV_GUIDE.md](VIRTUAL_ENV_GUIDE.md) - 가상환경 설정 가이드
+- [LOCAL_SETUP_GUIDE.md](LOCAL_SETUP_GUIDE.md) - 로컬 개발 환경 설정
+- [DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md) - 개발 환경 구축
 
 ---
 

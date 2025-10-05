@@ -19,11 +19,11 @@ def create_meta_data(request: Request, extra_data: Optional[Dict[str, Any]] = No
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "request_id": getattr(request.state, 'request_id', 'unknown'),
     }
-    
+
     # 추가 메타데이터가 있으면 병합
     if extra_data:
         meta.update(extra_data)
-    
+
     return meta
 
 
@@ -37,14 +37,14 @@ def success_response(
     """성공 응답을 생성합니다."""
     message = get_success_message(message_key.value, request)
     meta = create_meta_data(request, extra_meta)
-    
+
     response_data = {
         "status": status_code,
         "msg": message,
         "data": data,
         "meta": meta
     }
-    
+
     return JSONResponse(status_code=status_code, content=response_data)
 
 
@@ -61,11 +61,11 @@ def created_response(
         message_key=message_key,
         status_code=201
     )
-    
+
     # Location 헤더 추가
     if location:
         response.headers["Location"] = location
-    
+
     return response
 
 
@@ -80,16 +80,17 @@ def list_response(
     total: int,
     page: int,
     size: int,
-    message_key: MessageKey = MessageKey.TODO_LIST_RETRIEVED
+    message_key: MessageKey = MessageKey.TODO_LIST_RETRIEVED,
+    items_key: str = "todos"
 ) -> JSONResponse:
     """목록 응답을 생성합니다."""
     data = {
-        "todos": items,
+        items_key: items,
         "total": total,
         "page": page,
         "size": size
     }
-    
+
     return success_response(
         request=request,
         data=data,

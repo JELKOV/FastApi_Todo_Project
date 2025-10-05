@@ -1,17 +1,18 @@
 """
 TODO 도메인 SQLAlchemy 모델 정의
 
-이 모듈은 TODO 엔티티의 데이터베이스 모델을 정의합니다.
+이 모듈은 TODO와 User 엔티티의 데이터베이스 모델을 정의합니다.
 SQLAlchemy ORM을 사용하여 데이터베이스 테이블과 매핑되는 모델입니다.
 
 주요 특징:
+- User 모델: 사용자 인증 및 관리
+- Todo 모델: 할 일 관리 (User와 FK 관계)
 - 자동 생성되는 ID (Primary Key)
-- 제목과 설명 필드
-- 완료 상태와 우선순위
 - 자동 타임스탬프 (생성/수정 시간)
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
 
@@ -22,6 +23,7 @@ class Todo(Base):
 
     데이터베이스의 'todos' 테이블과 매핑되는 모델입니다.
     각 TODO 항목의 모든 속성과 메타데이터를 정의합니다.
+    User와의 외래키 관계를 통해 사용자별 TODO 관리를 지원합니다.
     """
     __tablename__ = "todos"  # 데이터베이스 테이블 이름
 
@@ -59,6 +61,14 @@ class Todo(Base):
         nullable=False        # NULL 값 허용하지 않음
     )
 
+    # 사용자 외래키: User 테이블의 id 참조
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL"),  # 사용자 삭제 시 NULL로 설정
+        nullable=True,        # NULL 값 허용 (익명 TODO 지원)
+        index=True            # 사용자별 조회 성능 향상
+    )
+
     # 생성 시간: 서버에서 자동 설정
     created_at = Column(
         DateTime(timezone=True),
@@ -71,6 +81,12 @@ class Todo(Base):
         server_default=func.now(),           # 초기 생성 시 현재 시간
         onupdate=func.now()                  # 업데이트 시마다 현재 시간으로 갱신
     )
+
+    # 관계 설정: 이 TODO를 소유한 User (임시로 주석 처리)
+    # user = relationship(
+    #     "app.users.domain.models.User",      # 전체 모듈 경로로 명시
+    #     back_populates="todos"               # 양방향 관계 설정
+    # )
 
     def __repr__(self):
         """
