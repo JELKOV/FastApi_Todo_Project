@@ -1,0 +1,31 @@
+# FastAPI 및 웹 프레임워크
+fastapi
+uvicorn[standard]
+python-multipart
+
+# 데이터 검증 및 설정
+pydantic
+pydantic-settings
+
+# 데이터베이스 ORM
+sqlalchemy
+
+# 환경 변수 관리
+python-dotenv
+
+# PostgreSQL 드라이버
+psycopg2-binary
+
+# JSON 응답 최적화 (선택사항)
+orjson
+
+# 테스트 프레임워크
+pytest
+pytest-asyncio
+pytest-cov
+httpx
+
+# 개발 도구 (선택사항)
+black
+flake8
+mypy
