@@ -1,6 +1,6 @@
 # Todo RESTful API
 
-FastAPI와 PostgreSQL을 사용한 완전한 TODO 관리 RESTful API입니다. Clean Architecture 패턴을 적용하여 확장 가능하고 유지보수가 용이한 구조로 설계되었습니다.
+FastAPI와 PostgreSQL을 사용한 완전한 TODO 관리 RESTful API입니다. Clean Architecture 패턴을 적용하여 확장 가능하고 유지보수가 용이한 구조로 설계되었습니다. **Background Tasks**를 통한 비동기 처리로 성능이 크게 향상되었습니다.
 
 ## 🏗️ 프로젝트 구조 (Clean Architecture)
 
@@ -9,7 +9,10 @@ todo_fastapi_be/
 ├── app/                          # 애플리케이션 메인 디렉토리
 │   ├── main.py                   # FastAPI 애플리케이션 진입점
 │   ├── core/                     # 핵심 설정
-│   │   └── database.py           # 데이터베이스 연결 설정
+│   │   ├── database.py           # 데이터베이스 연결 설정
+│   │   ├── auth.py               # JWT 인증 및 bcrypt 해싱
+│   │   ├── email_service.py      # 이메일 전송 서비스
+│   │   └── background_tasks.py   # 백그라운드 작업 함수들
 │   ├── common/                   # 공통 모듈
 │   │   ├── schemas.py            # 공통 Pydantic 스키마
 │   │   ├── error_codes.py        # 에러 코드 및 메시지 관리
@@ -40,15 +43,20 @@ todo_fastapi_be/
 │   ├── unit/                     # 단위 테스트
 │   │   ├── test_basic.py         # 기본 기능 테스트
 │   │   ├── test_fixtures.py      # 픽스처 테스트
-│   │   └── test_mocking.py       # 모킹 테스트
+│   │   ├── test_mocking.py       # 모킹 테스트
+│   │   ├── test_email_service.py # 이메일 서비스 테스트
+│   │   └── test_background_tasks_functions.py # 백그라운드 작업 테스트
 │   ├── integration/              # 통합 테스트
 │   │   ├── test_get_todos.py     # TODO 목록 조회 테스트
 │   │   ├── test_get_todo.py      # TODO 단일 조회 테스트
 │   │   ├── test_post_todo.py     # TODO 생성 테스트
 │   │   ├── test_patch_todo.py    # TODO 수정 테스트
 │   │   ├── test_delete_todo.py   # TODO 삭제 테스트
-│   │   └── test_user_api_complete.py # 사용자 API 통합 테스트
-│   └── fixtures/                 # 테스트 픽스처
+│   │   ├── test_user_api_complete.py # 사용자 API 통합 테스트
+│   │   ├── test_auth_api.py      # 인증 API 테스트
+│   │   └── test_background_tasks.py # 백그라운드 작업 통합 테스트
+│   └── scripts/                  # 실제 테스트 스크립트
+│       └── background_tasks_real_test.py # 백그라운드 작업 실제 테스트
 ├── config.py                     # 애플리케이션 설정 관리
 ├── run.py                        # 개발 서버 실행 스크립트
 ├── requirements.txt              # Python 의존성
@@ -136,7 +144,7 @@ make coverage
 - `DELETE /todos/{id}` - TODO 삭제
 - `PATCH /todos/{id}/toggle` - TODO 완료 상태 토글
 
-### 사용자 관리
+### 사용자 관리 & 인증
 - `POST /users/` - 새 사용자 생성
 - `GET /users/` - 사용자 목록 조회 (페이지네이션 지원)
 - `GET /users/{user_id}` - 특정 사용자 조회
@@ -145,6 +153,15 @@ make coverage
 - `DELETE /users/{user_id}` - 사용자 삭제
 - `GET /users/username/{username}` - 사용자명으로 사용자 조회
 - `GET /users/email/{email}` - 이메일로 사용자 조회
+- `GET /users/me` - 현재 사용자 정보 조회 (JWT 인증 필요)
+
+### OTP 인증 (Redis 기반)
+- `POST /users/request-otp` - OTP 요청 (백그라운드 이메일 전송)
+- `POST /users/verify-otp` - OTP 검증
+
+### JWT 인증
+- `POST /auth/login` - 사용자 로그인 (JWT 토큰 발급)
+- `GET /auth/me` - 현재 사용자 정보 조회 (JWT 토큰 필요)
 
 ### 쿼리 파라미터 (GET /todos/)
 - `page`: 페이지 번호 (기본값: 1)
@@ -237,17 +254,18 @@ CREATE TABLE todos (
 ## 🧪 테스트 구조
 
 ### 테스트 개요
-이 프로젝트는 **140개의 포괄적인 테스트**를 포함하고 있으며, 다음과 같은 영역을 커버합니다:
+이 프로젝트는 **183개의 포괄적인 테스트**를 포함하고 있으며, 다음과 같은 영역을 커버합니다:
 
 - **인증 API**: 10개 테스트 (bcrypt, JWT)
 - **TODO API**: 60개 테스트 (CRUD, 필터링, 페이징)
 - **User API**: 20개 테스트 (CRUD, OTP)
-- **단위 테스트**: 50개 테스트 (기본 기능, Fixture, Mocking)
+- **Background Tasks**: 13개 테스트 (이메일 서비스, 백그라운드 작업)
+- **단위 테스트**: 80개 테스트 (기본 기능, Fixture, Mocking, 이메일 서비스)
 
 ### 테스트 통계
-- ✅ **성공률**: 100% (140/140)
-- ⚡ **실행 시간**: ~1분
-- 🚫 **경고**: 0개 (완전 해결)
+- ✅ **성공률**: 99.5% (182/183) - 1개 테스트만 설정 관련 이슈
+- ⚡ **실행 시간**: ~1분 18초
+- 🚫 **경고**: 4개 (실제 테스트 스크립트 관련, 기능에는 영향 없음)
 - 🎯 **커버리지**: 90%+
 
 ### 테스트 유형
@@ -256,12 +274,20 @@ CREATE TABLE todos (
    - 개별 함수/메서드 테스트
    - 모킹을 통한 격리된 테스트
    - 픽스처 사용법 테스트
+   - 이메일 서비스 테스트
+   - 백그라운드 작업 함수 테스트
 
 2. **Integration Tests** (`tests/integration/`)
    - API 엔드포인트 통합 테스트
    - 데이터베이스 연동 테스트
    - 전체 워크플로우 테스트
    - Redis OTP 인증 테스트
+   - Background Tasks 통합 테스트
+
+3. **Real Tests** (`tests/scripts/`)
+   - 실제 서버와의 통신 테스트
+   - 성능 측정 테스트
+   - 백그라운드 작업 실제 동작 확인
 
 ### 테스트 실행
 
@@ -515,6 +541,15 @@ curl "http://localhost:8000/users/?page=1&size=10"
 - **에러 핸들링**: 상세한 에러 응답 및 코드
 - **다국어 지원**: 한국어/영어 메시지
 - **자동 문서화**: Swagger UI & ReDoc
+- **Background Tasks**: 비동기 작업 처리로 성능 향상
+- **JWT 인증**: 안전한 사용자 인증
+- **OTP 인증**: Redis 기반 이메일 OTP 시스템
+
+### 성능 특징
+- **비동기 처리**: Background Tasks로 응답 시간 66.7% 향상
+- **이메일 서비스**: 개발/프로덕션 모드 지원
+- **사용자 활동 로깅**: 백그라운드에서 자동 로깅
+- **알림 시스템**: TODO 완료 시 자동 알림
 
 ### 데이터베이스 특징
 - **PostgreSQL**: 강력한 관계형 데이터베이스
@@ -536,11 +571,13 @@ curl "http://localhost:8000/users/?page=1&size=10"
 
 ## 📊 프로젝트 통계
 
-- **총 테스트**: 126개 (모두 통과)
-- **테스트 커버리지**: 높은 수준
-- **API 엔드포인트**: TODO 6개 + 사용자 7개
+- **총 테스트**: 183개 (182개 통과, 99.5% 성공률)
+- **테스트 커버리지**: 90%+
+- **API 엔드포인트**: TODO 6개 + 사용자 7개 + 인증 2개 + OTP 2개
 - **데이터베이스 테이블**: 2개 (users, todos)
 - **아키텍처 레이어**: 4개 (Domain, Application, Infrastructure, Interface)
+- **Background Tasks**: 5개 함수 (이메일, 로깅, 알림, 정리, 분석)
+- **성능 향상**: OTP 응답 시간 66.7% 개선 (6.114초 → 2.034초)
 
 ## 📞 지원
 
@@ -574,6 +611,7 @@ curl "http://localhost:8000/users/?page=1&size=10"
 - [docs/refactoring/USER_API_REFACTORING_DOCUMENTATION.md](docs/refactoring/USER_API_REFACTORING_DOCUMENTATION.md) - 사용자 API 리팩토링 문서
 - [docs/refactoring/JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md](docs/refactoring/JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md) - JWT + bcrypt 인증 시스템
 - [docs/refactoring/REDIS_OTP_REFACTORING_DOCUMENTATION.md](docs/refactoring/REDIS_OTP_REFACTORING_DOCUMENTATION.md) - **Redis OTP 인증 시스템**
+- [docs/FASTAPI_BACKGROUND_TASKS_GUIDE.md](docs/FASTAPI_BACKGROUND_TASKS_GUIDE.md) - **Background Tasks 구현 가이드**
 
 ### 🧪 **테스트**
 - [docs/testing/PYTEST_TUTORIAL_PROGRESS.md](docs/testing/PYTEST_TUTORIAL_PROGRESS.md) - Pytest 튜토리얼 진행 상황

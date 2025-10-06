@@ -5,11 +5,12 @@
 """
 
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.auth import authenticate_user, create_access_token, get_current_user
 from app.core.redis import get_redis_client  # 🆕 Redis 클라이언트 DI
+from app.core.background_tasks import send_otp_email_task, log_user_activity_task  # 🆕 Background Tasks 임포트
 from app.users.application.services import UserService
 from app.users.application.otp_service import OTPService  # 🆕 OTP 서비스 임포트
 from app.users.domain.entities import (
@@ -354,27 +355,32 @@ async def get_user_by_email(
 )
 async def request_otp(
     request: Request,
+    background_tasks: BackgroundTasks,  # 🆕 Background Tasks 주입
     otp_request: OTPRequest,
     otp_service: OTPService = Depends(get_otp_service)  # OTP 서비스 주입
 ):
     """
     사용자 이메일로 OTP를 요청하고 Redis에 저장합니다.
-    실제 이메일 전송 로직은 여기에 포함되지 않으며, 개발용으로 콘솔에 출력됩니다.
+    이메일 전송은 백그라운드에서 처리되어 응답 속도가 향상됩니다.
     """
     try:
         otp_code = otp_service.generate_and_store_otp(otp_request.email)
 
-        # 실제 환경에서는 이메일 전송 서비스(예: SendGrid, Mailgun)를 통해 OTP를 사용자에게 전송해야 합니다.
-        # 현재는 콘솔에 출력하거나, 테스트를 위해 반환합니다.
-        print(f"📧 OTP for {otp_request.email}: {otp_code}")
+        # 🆕 백그라운드에서 이메일 전송 (응답 속도 향상)
+        background_tasks.add_task(
+            send_otp_email_task,
+            otp_request.email,
+            otp_code
+        )
 
         return success_response(
             request=request,
             message_key=MessageKey.OTP_SENT_SUCCESSFULLY,
             data={
                 "email": otp_request.email,
-                "otp_code": otp_code,  # 개발/테스트용으로 OTP 코드 포함
-                "expires_in_minutes": settings.OTP_EXPIRATION_MINUTES
+                "expires_in_minutes": settings.OTP_EXPIRATION_MINUTES,
+                # 개발 환경에서만 OTP 코드 포함 (보안상 프로덕션에서는 제외)
+                **({"otp_code": otp_code} if settings.DEBUG else {})
             }
         )
     except Exception as e:

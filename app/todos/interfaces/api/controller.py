@@ -13,10 +13,11 @@ Clean Architecture의 인터페이스 계층에 해당하며, HTTP 요청을 받
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Query, Path, Request, Response, status
+from fastapi import APIRouter, Depends, Query, Path, Request, Response, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.auth import get_current_user
+from app.core.background_tasks import log_user_activity_task  # 🆕 Background Tasks 임포트
 from app.todos.application.services import TodoService
 from app.todos.domain.entities import (
     TodoCreate,
@@ -65,6 +66,7 @@ def get_todo_service(db: Session = Depends(get_db)) -> TodoService:
 )
 async def create_todo(
     request: Request,
+    background_tasks: BackgroundTasks,  # 🆕 Background Tasks 주입
     todo_data: TodoCreate,
     todo_service: TodoService = Depends(get_todo_service),
     current_user: User = Depends(get_current_user)
@@ -75,11 +77,14 @@ async def create_todo(
     POST /todos/
 
     새로운 TODO 항목을 생성합니다.
+    사용자 활동은 백그라운드에서 로깅됩니다.
 
     Args:
         request (Request): FastAPI 요청 객체
+        background_tasks (BackgroundTasks): 백그라운드 작업 처리
         todo_data (TodoCreate): 생성할 TODO 데이터
         todo_service (TodoService): TODO 서비스 (의존성 주입)
+        current_user (User): 현재 인증된 사용자
 
     Returns:
         JSONResponse: 생성된 TODO 정보 (HTTP 201)
@@ -90,6 +95,20 @@ async def create_todo(
     """
     try:
         todo = todo_service.create_todo(todo_data, current_user.id)
+
+        # 🆕 백그라운드에서 사용자 활동 로깅
+        background_tasks.add_task(
+            log_user_activity_task,
+            current_user.id,
+            "todo_created",
+            {
+                "todo_id": todo.id,
+                "title": todo.title,
+                "priority": todo.priority,
+                "completed": todo.completed
+            }
+        )
+
         return created_response(
             request=request,
             data=todo.model_dump(mode='json'),
@@ -273,8 +292,10 @@ async def update_todo(
 )
 async def toggle_todo(
     request: Request,
+    background_tasks: BackgroundTasks,  # 🆕 Background Tasks 주입
     todo_id: int = Path(..., description="TODO ID"),
-    todo_service: TodoService = Depends(get_todo_service)
+    todo_service: TodoService = Depends(get_todo_service),
+    current_user: User = Depends(get_current_user)  # 🆕 사용자 인증 추가
 ):
     """
     TODO 완료 상태 토글
@@ -282,11 +303,14 @@ async def toggle_todo(
     PATCH /todos/{todo_id}/toggle
 
     TODO의 완료 상태를 반전시킵니다 (완료 ↔ 미완료).
+    사용자 활동은 백그라운드에서 로깅됩니다.
 
     Args:
         request (Request): FastAPI 요청 객체
+        background_tasks (BackgroundTasks): 백그라운드 작업 처리
         todo_id (int): 토글할 TODO의 ID
         todo_service (TodoService): TODO 서비스 (의존성 주입)
+        current_user (User): 현재 인증된 사용자
 
     Returns:
         JSONResponse: 토글된 TODO 정보
@@ -294,9 +318,22 @@ async def toggle_todo(
     Raises:
         TodoNotFoundError: TODO가 존재하지 않을 때 404 에러
     """
-    todo = todo_service.toggle_todo(todo_id)
+    todo = todo_service.toggle_todo(todo_id, current_user.id)
     if not todo:
         raise TodoNotFoundError(todo_id, request)
+
+    # 🆕 백그라운드에서 사용자 활동 로깅
+    background_tasks.add_task(
+        log_user_activity_task,
+        current_user.id,
+        "todo_toggled",
+        {
+            "todo_id": todo.id,
+            "title": todo.title,
+            "completed": todo.completed,
+            "priority": todo.priority
+        }
+    )
 
     return success_response(
         request=request,

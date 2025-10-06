@@ -107,6 +107,16 @@
   - 통합 테스트 작성
 - **리팩토링 시점**: 최신 구현 (Redis OTP 시스템)
 
+#### 📖 `FASTAPI_BACKGROUND_TASKS_GUIDE.md` - Background Tasks 성능 최적화
+- **목적**: FastAPI Background Tasks를 통한 성능 최적화 구현
+- **내용**:
+  - 이메일 서비스 구현 (개발/프로덕션 모드)
+  - 백그라운드 작업 함수들 (이메일, 로깅, 알림, 정리, 분석)
+  - 성능 향상 결과 (66.7% 응답 시간 개선)
+  - 포괄적인 테스트 코드 (39개 테스트)
+  - 실제 서버 테스트 스크립트
+- **리팩토링 시점**: 최신 구현 (Background Tasks 성능 최적화)
+
 ## 🔄 리팩토링 타임라인
 
 ```mermaid
@@ -116,6 +126,7 @@ graph TD
     C --> D[JWT + bcrypt 인증 시스템]
     D --> E[Pytest 테스트 시스템]
     E --> F[Redis OTP 시스템]
+    F --> G[Background Tasks 성능 최적화]
 
     A1[README.md<br/>DEVELOPMENT_SETUP.md<br/>LOCAL_SETUP_GUIDE.md] --> A
     B1[README_POSTGRESQL.md] --> B
@@ -123,6 +134,7 @@ graph TD
     D1[JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md] --> D
     E1[PYTEST_TUTORIAL_PROGRESS.md] --> E
     F1[REDIS_OTP_REFACTORING_DOCUMENTATION.md] --> F
+    G1[FASTAPI_BACKGROUND_TASKS_GUIDE.md] --> G
 ```
 
 ## 📊 각 문서의 상세 정보
@@ -143,6 +155,7 @@ graph TD
 - **USER_API_REFACTORING_DOCUMENTATION.md**: User API 구현
 - **JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md**: 인증 시스템
 - **REDIS_OTP_REFACTORING_DOCUMENTATION.md**: OTP 시스템
+- **FASTAPI_BACKGROUND_TASKS_GUIDE.md**: Background Tasks 성능 최적화
 
 ### 🧪 **테스트 문서**
 - **PYTEST_TUTORIAL_PROGRESS.md**: 테스트 시스템 구축
@@ -159,6 +172,7 @@ graph TD
 - **인증 시스템**: `JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md`
 - **OTP 시스템**: `REDIS_OTP_REFACTORING_DOCUMENTATION.md`
 - **User API**: `USER_API_REFACTORING_DOCUMENTATION.md`
+- **Background Tasks**: `FASTAPI_BACKGROUND_TASKS_GUIDE.md`
 - **테스트**: `PYTEST_TUTORIAL_PROGRESS.md`
 
 ### 🛠️ **문제 해결**

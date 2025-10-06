@@ -31,6 +31,7 @@
 | `USER_API_REFACTORING_DOCUMENTATION.md` | User API 구현 | User 도메인, API 엔드포인트, 에러 처리 | User API 추가 |
 | `JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md` | JWT 인증 시스템 | JWT 토큰, bcrypt 해싱, 로그인/회원가입, 미들웨어 | 인증 시스템 추가 |
 | `REDIS_OTP_REFACTORING_DOCUMENTATION.md` | Redis OTP 시스템 | Redis 클라이언트, OTP 서비스, 보안 강화 | OTP 시스템 추가 |
+| `FASTAPI_BACKGROUND_TASKS_GUIDE.md` | Background Tasks 구현 | 이메일 서비스, 백그라운드 작업, 성능 향상 | Background Tasks 추가 |
 
 ### 🧪 **테스트**
 | 문서 | 목적 | 주요 내용 | 리팩토링 시점 |
@@ -59,6 +60,8 @@
 - **User API**: `USER_API_REFACTORING_DOCUMENTATION.md`
 - **인증 문제**: `JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md`
 - **OTP 문제**: `REDIS_OTP_REFACTORING_DOCUMENTATION.md`
+- **Background Tasks 문제**: `FASTAPI_BACKGROUND_TASKS_GUIDE.md`
+- **Background Tasks 총정리**: `BACKGROUND_TASKS_COMPLETE_GUIDE.md`
 
 #### 테스트 문제
 - **테스트 실행 문제**: `PYTEST_TUTORIAL_PROGRESS.md`
@@ -68,6 +71,10 @@
 #### 인증 시스템
 - `JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md` - JWT + bcrypt
 - `REDIS_OTP_REFACTORING_DOCUMENTATION.md` - OTP 시스템
+
+#### 성능 최적화
+- `FASTAPI_BACKGROUND_TASKS_GUIDE.md` - Background Tasks 구현
+- `BACKGROUND_TASKS_COMPLETE_GUIDE.md` - Background Tasks 완전 가이드
 
 #### API 개발
 - `USER_API_REFACTORING_DOCUMENTATION.md` - User API 구현 방법

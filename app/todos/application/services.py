@@ -178,18 +178,25 @@ class TodoService:
         self.db.commit()
         return True
 
-    def toggle_todo(self, todo_id: int) -> Optional[TodoResponse]:
+    def toggle_todo(self, todo_id: int, user_id: int = None) -> Optional[TodoResponse]:
         """
         TODO 완료 상태 토글
 
         Args:
             todo_id (int): 토글할 TODO의 ID
+            user_id (int, optional): 사용자 ID (인증된 사용자)
 
         Returns:
             Optional[TodoResponse]: 토글된 TODO 정보 (존재하지 않으면 None)
         """
         # 토글할 TODO 조회
-        db_todo = self.db.query(Todo).filter(Todo.id == todo_id).first()
+        query = self.db.query(Todo).filter(Todo.id == todo_id)
+
+        # 사용자 ID가 제공된 경우 해당 사용자의 TODO만 조회
+        if user_id is not None:
+            query = query.filter(Todo.user_id == user_id)
+
+        db_todo = query.first()
         if not db_todo:
             return None
 
