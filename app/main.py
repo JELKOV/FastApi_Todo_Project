@@ -17,8 +17,10 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 import os
+from config import settings
 
 from app.core.database import engine, Base
+from app.core.redis import test_redis_connection  # 🆕 Redis 연결 테스트 임포트
 from app.todos.interfaces.api.controller import router as todos_router
 from app.users.interfaces.api.controller import router as users_router
 from app.common.exceptions import BaseTodoException
@@ -36,14 +38,32 @@ from app.common.exception_handlers import (
 # SQLAlchemy Base 클래스의 메타데이터를 사용하여 모든 모델의 테이블을 생성합니다.
 Base.metadata.create_all(bind=engine)
 
-# FastAPI 애플리케이션 인스턴스 생성
+# FastAPI 애플리케이션 인스턴스는 lifespan 이벤트와 함께 아래에서 생성됩니다
+
+# 🆕 애플리케이션 시작 시 Redis 연결 테스트 (Lifespan 이벤트 사용)
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """애플리케이션 생명주기 관리"""
+    # 시작 시 실행
+    print("🚀 Starting Todo API with Redis OTP support...")
+    test_redis_connection()
+    print("✅ Application startup completed!")
+    yield
+    # 종료 시 실행 (필요시 정리 작업)
+    print("🛑 Application shutdown completed!")
+
+# lifespan 이벤트 핸들러 등록
 app = FastAPI(
-    title=os.getenv("APP_NAME", "Todo RESTful API"),
-    description="A complete RESTful API for Todo management built with FastAPI and SQLite",
-    version=os.getenv("APP_VERSION", "1.0.0"),
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG,
+    description="A complete RESTful API for Todo management built with FastAPI and PostgreSQL",
     docs_url="/docs",      # Swagger UI 문서 경로
     redoc_url="/redoc",    # ReDoc 문서 경로
     default_response_class=JSONResponse,  # JSON 응답
+    lifespan=lifespan
 )
 
 # CORS 미들웨어 추가

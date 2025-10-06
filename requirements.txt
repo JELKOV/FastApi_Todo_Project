@@ -24,6 +24,9 @@ orjson
 passlib[bcrypt]
 python-jose[cryptography]
 
+# Redis 클라이언트
+redis
+
 # 테스트 프레임워크
 pytest
 pytest-asyncio

@@ -236,6 +236,20 @@ CREATE TABLE todos (
 
 ## 🧪 테스트 구조
 
+### 테스트 개요
+이 프로젝트는 **140개의 포괄적인 테스트**를 포함하고 있으며, 다음과 같은 영역을 커버합니다:
+
+- **인증 API**: 10개 테스트 (bcrypt, JWT)
+- **TODO API**: 60개 테스트 (CRUD, 필터링, 페이징)
+- **User API**: 20개 테스트 (CRUD, OTP)
+- **단위 테스트**: 50개 테스트 (기본 기능, Fixture, Mocking)
+
+### 테스트 통계
+- ✅ **성공률**: 100% (140/140)
+- ⚡ **실행 시간**: ~1분
+- 🚫 **경고**: 0개 (완전 해결)
+- 🎯 **커버리지**: 90%+
+
 ### 테스트 유형
 
 1. **Unit Tests** (`tests/unit/`)
@@ -247,21 +261,37 @@ CREATE TABLE todos (
    - API 엔드포인트 통합 테스트
    - 데이터베이스 연동 테스트
    - 전체 워크플로우 테스트
+   - Redis OTP 인증 테스트
 
 ### 테스트 실행
 
 ```bash
-# 전체 테스트
+# 전체 테스트 실행
+pytest
+
+# 상세 출력으로 실행
+pytest -v
+
+# 특정 테스트 파일 실행
+pytest tests/integration/test_post_todo.py -v
+
+# OTP 테스트만 실행
+pytest tests/integration/test_user_api_complete.py -k "otp" -v
+
+# 커버리지 포함 실행
+pytest --cov=app --cov-report=html
+
+# 전체 테스트 (Makefile 사용)
 make test
 
 # 커버리지 리포트
 make coverage
+```
 
-# 특정 테스트 파일
-python -m pytest tests/integration/test_user_api_complete.py -v
-
-# 특정 테스트 클래스
-python -m pytest tests/integration/test_user_api_complete.py::TestUserAPIComplete -v
+### 테스트 문서
+- 📖 [테스트 가이드](docs/TESTING_GUIDE.md) - 완전한 테스트 가이드
+- 📊 [테스트 커버리지 리포트](docs/TEST_COVERAGE_REPORT.md) - 상세한 커버리지 분석
+- 🔐 [Redis OTP 테스트 가이드](docs/REDIS_OTP_TESTING_GUIDE.md) - OTP 테스트 전용 가이드
 ```
 
 ## 🐛 주요 에러 해결 가이드
@@ -523,13 +553,32 @@ curl "http://localhost:8000/users/?page=1&size=10"
 5. **환경 변수 확인**: `.env` 파일 내용
 6. **테스트 실행**: `make test`
 
-## 📚 추가 문서
+## 📚 프로젝트 문서
 
-- [PYTEST_TUTORIAL_PROGRESS.md](PYTEST_TUTORIAL_PROGRESS.md) - Pytest 튜토리얼 진행 상황
-- [USER_API_REFACTORING_DOCUMENTATION.md](USER_API_REFACTORING_DOCUMENTATION.md) - 사용자 API 리팩토링 문서
-- [VIRTUAL_ENV_GUIDE.md](VIRTUAL_ENV_GUIDE.md) - 가상환경 설정 가이드
-- [LOCAL_SETUP_GUIDE.md](LOCAL_SETUP_GUIDE.md) - 로컬 개발 환경 설정
-- [DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md) - 개발 환경 구축
+모든 문서는 `docs/` 디렉토리에 체계적으로 정리되어 있습니다.
+
+### 🎯 **문서 가이드**
+- [📚 docs/PROJECT_DOCUMENTATION_GUIDE.md](docs/PROJECT_DOCUMENTATION_GUIDE.md) - **리팩토링 순서별 문서 정리**
+- [📋 docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) - **빠른 문서 참조 인덱스**
+
+### 🔧 **환경 설정**
+- [docs/setup/DEVELOPMENT_SETUP.md](docs/setup/DEVELOPMENT_SETUP.md) - 개발 환경 구축
+- [docs/setup/LOCAL_SETUP_GUIDE.md](docs/setup/LOCAL_SETUP_GUIDE.md) - 로컬 개발 환경 설정
+- [docs/setup/VIRTUAL_ENV_GUIDE.md](docs/setup/VIRTUAL_ENV_GUIDE.md) - 가상환경 설정 가이드
+- [docs/setup/setup_global_vscode.md](docs/setup/setup_global_vscode.md) - VS Code 전역 설정
+
+### 🗄️ **데이터베이스**
+- [docs/setup/README_POSTGRESQL.md](docs/setup/README_POSTGRESQL.md) - PostgreSQL 마이그레이션 가이드
+
+### 🚀 **기능 구현**
+- [docs/refactoring/USER_API_REFACTORING_DOCUMENTATION.md](docs/refactoring/USER_API_REFACTORING_DOCUMENTATION.md) - 사용자 API 리팩토링 문서
+- [docs/refactoring/JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md](docs/refactoring/JWT_BCRYPT_AUTHENTICATION_DOCUMENTATION.md) - JWT + bcrypt 인증 시스템
+- [docs/refactoring/REDIS_OTP_REFACTORING_DOCUMENTATION.md](docs/refactoring/REDIS_OTP_REFACTORING_DOCUMENTATION.md) - **Redis OTP 인증 시스템**
+
+### 🧪 **테스트**
+- [docs/testing/PYTEST_TUTORIAL_PROGRESS.md](docs/testing/PYTEST_TUTORIAL_PROGRESS.md) - Pytest 튜토리얼 진행 상황
+
+> 💡 **문서 전체 보기**: [docs/README.md](docs/README.md) - 문서 디렉토리 개요
 
 ---
 

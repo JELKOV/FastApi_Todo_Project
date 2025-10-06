@@ -78,3 +78,52 @@ class TodoDatabaseError(BaseTodoException):
             details=details,
             request=request
         )
+
+
+# OTP 관련 예외 클래스
+class OTPError(BaseTodoException):
+    """OTP 관련 기본 예외"""
+    
+    def __init__(self, message: str, error_code: str = "OTP_ERROR", status_code: int = 400, request: Optional[Request] = None):
+        super().__init__(
+            error_code=error_code,
+            message=message,
+            status_code=status_code,
+            request=request
+        )
+
+
+class InvalidOTPError(OTPError):
+    """유효하지 않은 OTP 예외"""
+    
+    def __init__(self, message: str = "Invalid OTP provided", request: Optional[Request] = None):
+        super().__init__(
+            message=message,
+            error_code="INVALID_OTP",
+            status_code=400,
+            request=request
+        )
+
+
+class OTPExpiredError(OTPError):
+    """만료된 OTP 예외"""
+    
+    def __init__(self, message: str = "OTP has expired", request: Optional[Request] = None):
+        super().__init__(
+            message=message,
+            error_code="OTP_EXPIRED",
+            status_code=400,
+            request=request
+        )
+
+
+class OTPNotFoundError(OTPError):
+    """OTP를 찾을 수 없는 예외 (아직 요청되지 않았거나 이미 사용됨)"""
+    
+    def __init__(self, message: str = "OTP not found or already used", request: Optional[Request] = None):
+        super().__init__(
+            message=message,
+            error_code="OTP_NOT_FOUND",
+            status_code=404,
+            request=request
+        )

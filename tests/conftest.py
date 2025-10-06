@@ -17,6 +17,7 @@ from app.main import app
 from app.core.database import get_db, Base
 from app.users.application.services import UserService
 from app.users.domain.entities import UserCreate
+from app.core.redis import get_redis_client as real_get_redis_client
 
 # 테스트용 인메모리 SQLite 데이터베이스
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -43,8 +44,39 @@ def session(engine):
         db.close()
         Base.metadata.drop_all(bind=engine)
 
+
+class _FakeRedis:
+    """테스트용 인메모리 Redis 대체 구현"""
+
+    def __init__(self):
+        self._store = {}
+
+    # 실제 코드가 사용하는 최소 메서드만 구현
+    def setex(self, key, ex_seconds, value):
+        # 단순화를 위해 만료는 테스트에서 사용하지 않음
+        self._store[str(key)] = str(value)
+
+    def get(self, key):
+        return self._store.get(str(key))
+
+    def delete(self, key):
+        self._store.pop(str(key), None)
+
+    def ttl(self, key):
+        # 만료 기능을 단순화: 키가 있으면 -1, 없으면 -2 (Redis 관례와 유사)
+        return -1 if str(key) in self._store else -2
+
+    def exists(self, key):
+        return 1 if str(key) in self._store else 0
+
+
 @pytest.fixture(scope="function")
-def client(session):
+def fake_redis():
+    """인메모리 Redis 대체 객체"""
+    return _FakeRedis()
+
+@pytest.fixture(scope="function")
+def client(session, fake_redis):
     """FastAPI 테스트 클라이언트"""
     def override_get_db():
         try:
@@ -53,6 +85,8 @@ def client(session):
             session.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    # Redis 의존성 오버라이드
+    app.dependency_overrides[real_get_redis_client] = lambda: fake_redis
     yield TestClient(app)
     app.dependency_overrides.clear()
 

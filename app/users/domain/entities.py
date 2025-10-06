@@ -172,6 +172,24 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 
+# OTP 관련 Pydantic 모델
+class OTPRequest(BaseModel):
+    """OTP 요청 모델 (이메일 기반)"""
+    email: EmailStr = Field(..., description="OTP를 요청할 사용자 이메일")
+
+
+class OTPVerificationRequest(BaseModel):
+    """OTP 검증 모델"""
+    email: EmailStr = Field(..., description="OTP를 요청했던 사용자 이메일")
+    otp_code: str = Field(
+        ...,
+        min_length=4,
+        max_length=6,  # 일반적으로 4자리 또는 6자리 OTP 사용
+        pattern=r"^\d+$",  # 숫자만 허용
+        description="사용자가 입력한 OTP 코드"
+    )
+
+
 class UserWithTodos(UserResponse):
     """
     TODO 목록을 포함한 사용자 정보 응답 모델

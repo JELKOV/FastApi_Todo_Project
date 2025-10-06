@@ -57,6 +57,13 @@ class MessageKey(Enum):
     USER_DELETED = "USER_DELETED"
     USER_RETRIEVED = "USER_RETRIEVED"
     USER_LIST_RETRIEVED = "USER_LIST_RETRIEVED"
+    
+    # OTP 관련 메시지
+    OTP_SENT_SUCCESSFULLY = "OTP_SENT_SUCCESSFULLY"
+    OTP_VERIFIED_SUCCESSFULLY = "OTP_VERIFIED_SUCCESSFULLY"
+    INVALID_OTP = "INVALID_OTP"
+    OTP_EXPIRED = "OTP_EXPIRED"
+    OTP_NOT_FOUND = "OTP_NOT_FOUND"
 
     # 에러 메시지
     TODO_NOT_FOUND = "TODO_NOT_FOUND"
@@ -91,6 +98,8 @@ MESSAGES: Dict[str, Dict[MessageType, Dict[str, str]]] = {
             MessageKey.USER_DELETED.value: "사용자가 삭제되었습니다",
             MessageKey.USER_RETRIEVED.value: "사용자 정보를 조회했습니다",
             MessageKey.USER_LIST_RETRIEVED.value: "사용자 목록을 조회했습니다",
+            MessageKey.OTP_SENT_SUCCESSFULLY.value: "OTP가 성공적으로 전송되었습니다",
+            MessageKey.OTP_VERIFIED_SUCCESSFULLY.value: "OTP가 성공적으로 확인되었습니다",
         },
         MessageType.ERROR: {
             TodoErrorCode.TODO_NOT_FOUND.value: "할 일을 찾을 수 없습니다",
@@ -100,6 +109,9 @@ MESSAGES: Dict[str, Dict[MessageType, Dict[str, str]]] = {
             TodoErrorCode.TODO_INVALID_DATA.value: "유효하지 않은 데이터입니다",
             TodoErrorCode.TODO_INVALID_TITLE.value: "제목이 올바르지 않습니다",
             TodoErrorCode.TODO_INVALID_PRIORITY.value: "우선순위가 올바르지 않습니다",
+            MessageKey.INVALID_OTP.value: "유효하지 않은 OTP가 제공되었습니다",
+            MessageKey.OTP_EXPIRED.value: "OTP가 만료되었습니다",
+            MessageKey.OTP_NOT_FOUND.value: "OTP를 찾을 수 없거나 이미 사용되었습니다",
         }
     },
     "en": {
@@ -116,6 +128,8 @@ MESSAGES: Dict[str, Dict[MessageType, Dict[str, str]]] = {
             MessageKey.USER_DELETED.value: "User deleted successfully",
             MessageKey.USER_RETRIEVED.value: "User retrieved successfully",
             MessageKey.USER_LIST_RETRIEVED.value: "User list retrieved successfully",
+            MessageKey.OTP_SENT_SUCCESSFULLY.value: "OTP sent successfully",
+            MessageKey.OTP_VERIFIED_SUCCESSFULLY.value: "OTP verified successfully",
         },
         MessageType.ERROR: {
             TodoErrorCode.TODO_NOT_FOUND.value: "Todo not found",
@@ -125,6 +139,9 @@ MESSAGES: Dict[str, Dict[MessageType, Dict[str, str]]] = {
             TodoErrorCode.TODO_INVALID_DATA.value: "Invalid data",
             TodoErrorCode.TODO_INVALID_TITLE.value: "Invalid title",
             TodoErrorCode.TODO_INVALID_PRIORITY.value: "Invalid priority",
+            MessageKey.INVALID_OTP.value: "Invalid OTP provided",
+            MessageKey.OTP_EXPIRED.value: "OTP has expired",
+            MessageKey.OTP_NOT_FOUND.value: "OTP not found or already used",
         }
     }
 }

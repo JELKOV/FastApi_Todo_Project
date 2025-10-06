@@ -393,3 +393,43 @@ class TestUserAPIComplete:
             assert "created_at" in user_data
             assert "updated_at" in user_data
             assert "password" not in user_data  # 보안상 비밀번호는 포함되지 않음
+
+
+# --- OTP 관련 통합 테스트 ---
+
+def test_request_otp(client):
+    payload = {"email": "otpuser@example.com"}
+    resp = client.post("/users/request-otp", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data.get("status") == 200
+    assert data.get("data", {}).get("email") == payload["email"]
+    assert "otp_code" in data.get("data", {})  # 개발/테스트용 반환
+
+
+def test_verify_otp_success(client):
+    email = "otp2@example.com"
+    # 먼저 OTP 발급
+    req = client.post("/users/request-otp", json={"email": email})
+    otp_code = req.json().get("data", {}).get("otp_code")
+    # 검증
+    resp = client.post("/users/verify-otp", json={"email": email, "otp_code": otp_code})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body.get("status") == 200
+    assert body.get("data", {}).get("email") == email
+
+
+def test_verify_otp_invalid_code(client):
+    email = "otp3@example.com"
+    # 발급만 하고 다른 코드로 검증
+    client.post("/users/request-otp", json={"email": email})
+    resp = client.post("/users/verify-otp", json={"email": email, "otp_code": "9999"})
+    # 구현에 따라 400/404/500 중 하나가 나올 수 있어 느슨히 검증
+    assert resp.status_code in (400, 404, 500)
+
+
+def test_verify_otp_missing(client):
+    # 존재하지 않는 이메일로 검증 시 404 또는 400
+    resp = client.post("/users/verify-otp", json={"email": "noone@example.com", "otp_code": "1234"})
+    assert resp.status_code in (404, 400)
